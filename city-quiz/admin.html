@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>资格管理 · 你的灵魂适合哪座城市？</title>
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    :root {
+      --bg: #FAF6EF; --card: #FFFFFF; --ink: #33312C; --ink-soft: #6B6860;
+      --ink-faint: #9A968D; --line: #ECE5D8; --accent: #B08968; --accent-deep: #9A7452;
+      --shadow: 0 8px 28px rgba(120,105,80,.08);
+      --ok: #4F8A5B; --warn: #C08A3E; --done: #6B8CAE; --bad: #C05B4D;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 60px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    h1 { font-size: 20px; margin: 0; }
+    .topbar .sub { color: var(--ink-faint); font-size: 12px; margin-top: 4px; }
+    button {
+      font-family: inherit; cursor: pointer; border: none; font-size: 14px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn {
+      display: inline-block; padding: 10px 18px; border-radius: 10px; font-weight: 600;
+      background: var(--accent); color: #fff; transition: background .15s ease;
+    }
+    .btn:hover { background: var(--accent-deep); }
+    .btn.ghost { background: var(--card); color: var(--ink-soft); box-shadow: var(--shadow); }
+    .btn.ghost:hover { color: var(--ink); }
+    .btn.small { padding: 6px 12px; font-size: 13px; border-radius: 8px; }
+    .btn.danger { background: var(--card); color: var(--bad); box-shadow: var(--shadow); }
+    .btn.danger:hover { background: #FBEAE7; }
+
+    .card { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
+    .card h2 { font-size: 15px; margin: 0 0 14px; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+    /* 登录 */
+    .login { max-width: 400px; margin: 12vh auto 0; }
+    .login input {
+      width: 100%; padding: 13px 14px; border: 1.5px solid var(--line); border-radius: 12px;
+      font-size: 15px; background: #FBF8F2; color: var(--ink); margin-bottom: 14px; outline: none;
+    }
+    .login input:focus { border-color: var(--accent); }
+    .login .msg { color: var(--bad); font-size: 13px; margin: 10px 0 0; min-height: 18px; }
+
+    /* 状态徽章 */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .badge.unused { background: #EAF4EC; color: var(--ok); }
+    .badge.in_progress { background: #FBF1E2; color: var(--warn); }
+    .badge.completed { background: #EAF0F6; color: var(--done); }
+    .badge.disabled { background: #FBEAE7; color: var(--bad); }
+
+    /* 统计 */
+    .stats { display: flex; flex-wrap: wrap; gap: 12px; }
+    .stat { flex: 1 1 120px; background: var(--card); border-radius: 14px; box-shadow: var(--shadow); padding: 14px 16px; }
+    .stat b { display: block; font-size: 26px; }
+    .stat span { font-size: 12px; color: var(--ink-faint); }
+
+    /* 生成结果 */
+    .gen-links { max-height: 300px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .gen-links .item { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+    .gen-links .item:last-child { border-bottom: none; }
+    .gen-links .url { flex: 1; word-break: break-all; color: var(--ink-soft); }
+
+    /* 表格 */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--ink-faint); font-weight: 600; font-size: 12px; }
+    td .muted { color: var(--ink-faint); font-size: 12px; }
+    .table-scroll { overflow-x: auto; }
+    .hint { color: var(--ink-faint); font-size: 12px; line-height: 1.7; margin-top: 10px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- 登录视图 -->
+    <div id="loginView" class="login card">
+      <h1>管理员登录</h1>
+      <input type="password" id="pw" placeholder="输入管理员口令" autocomplete="current-password">
+      <button class="btn" id="loginBtn" style="width:100%">登录</button>
+      <p class="msg" id="loginMsg"></p>
+    </div>
+
+    <!-- 主视图 -->
+    <div id="mainView" class="hidden">
+      <div class="topbar">
+        <div>
+          <h1>测试资格管理</h1>
+          <div class="sub">你的灵魂适合哪座城市？ · 一次性专属链接</div>
+        </div>
+        <button class="btn ghost" id="logoutBtn">退出登录</button>
+      </div>
+
+      <div class="card">
+        <h2>批量生成专属链接</h2>
+        <div class="row">
+          <button class="btn" data-gen="10">生成 10 条</button>
+          <button class="btn" data-gen="50">生成 50 条</button>
+          <button class="btn" data-gen="100">生成 100 条</button>
+        </div>
+        <div id="genResult" class="hidden" style="margin-top:16px">
+          <h2 style="margin:0 0 10px">刚生成的链接（仅本次显示，请立即保存）</h2>
+          <div class="gen-links" id="genLinks"></div>
+        </div>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="card">
+        <div class="row" style="margin-bottom:14px">
+          <button class="btn ghost" id="copyAllBtn">复制全部未使用链接</button>
+          <button class="btn ghost" id="exportBtn">导出未使用链接 CSV</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>开始时间</th>
+                <th>完成时间</th>
+                <th>结果城市</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <p class="hint">未使用链接的明文仅在此处与「复制/导出」动作中短暂出现；已使用或已禁用链接不显示明文。</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

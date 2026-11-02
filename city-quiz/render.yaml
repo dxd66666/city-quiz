@@ -1,0 +1,26 @@
+# Render Blueprint —— Web 服务（Node 后端 + 静态站点）
+# 用法：将项目推送到 GitHub/GitLab 后，在 Render 控制台点 "New +" → "Blueprint"，
+#       选择本仓库，Render 会读取此文件自动创建服务。
+#
+# 部署前请在 Render 控制台的服务 "Environment" 中配置以下环境变量：
+#   SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / ADMIN_PASSWORD / APP_SECRET
+#   （BASE_URL 可选；参见 .env.example）
+services:
+  - type: web
+    name: city-quiz
+    runtime: node
+    buildCommand: ""            # 无构建步骤
+    startCommand: node server.js
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: APP_SECRET
+        sync: false
+      - key: BASE_URL
+        sync: false

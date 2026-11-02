@@ -1,0 +1,16 @@
+{
+  "name": "city-quiz",
+  "version": "1.0.0",
+  "description": "《你的灵魂适合哪座城市？》32 题城市人格测试 · 纯静态、零依赖",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/test.js",
+    "test:server": "node tests/server.test.js",
+    "test:all": "node tests/test.js && node tests/server.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}
