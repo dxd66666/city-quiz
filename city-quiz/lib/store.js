@@ -138,9 +138,18 @@ class LocalStore {
 }
 
 // —— Supabase PostgREST 存储（生产）——
+// 归一化 REST 基地址：去掉末尾斜杠，并去掉可能已带的 /rest/v1，
+// 避免 SUPABASE_URL 已含 /rest/v1 时重复拼接，导致 PostgREST 返回 PGRST125。
+function normalizeRestBase(url, table) {
+  const base = String(url == null ? '' : url).trim()
+    .replace(/\/+$/, '')
+    .replace(/\/rest\/v1$/i, '');
+  return base + '/rest/v1/' + (table || 'quiz_tokens');
+}
+
 class SupabaseStore {
   constructor(url, key, table) {
-    this.base = String(url).replace(/\/+$/, '') + '/rest/v1/' + (table || 'quiz_tokens');
+    this.base = normalizeRestBase(url, table);
     this.key = key;
   }
 
