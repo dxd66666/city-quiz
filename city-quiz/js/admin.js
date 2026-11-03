@@ -18,6 +18,10 @@
     try { return localStorage.getItem(SESSION_KEY); } catch (e) { return null; }
   }
 
+  function clearSession() {
+    try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+  }
+
   function api(path, body) {
     var opts = {
       method: body === undefined ? 'GET' : 'POST',
@@ -26,6 +30,11 @@
     var s = session();
     if (s) opts.headers['Authorization'] = 'Bearer ' + s;
     if (body !== undefined) opts.body = JSON.stringify(body);
+    if (typeof AbortController !== 'undefined') {
+      var ctrl = new AbortController();
+      opts.signal = ctrl.signal;
+      setTimeout(function () { ctrl.abort(); }, 60000);
+    }
     return fetch(path, opts).then(function (r) { return r.json(); });
   }
 
@@ -55,23 +64,35 @@
     loadData();
   }
 
+  function setBusy(busy) {
+    var btn = $('loginBtn');
+    btn.disabled = !!busy;
+    btn.textContent = busy ? '正在登录…' : '登录';
+  }
+
   function doLogin() {
+    if ($('loginBtn').disabled) return; // 防止重复提交
     var pw = $('pw').value;
     if (!pw) { $('loginMsg').textContent = '请输入口令'; return; }
     $('loginMsg').textContent = '';
+    setBusy(true);
     api('/api/admin/login', { password: pw }).then(function (r) {
+      setBusy(false);
       if (r && r.ok && r.token) {
         try { localStorage.setItem(SESSION_KEY, r.token); } catch (e) {}
         $('pw').value = '';
         showMain();
       } else {
-        $('loginMsg').textContent = '口令错误';
+        $('loginMsg').textContent = (r && r.error === 'invalid_password') ? '口令错误' : '登录失败，请重试';
       }
-    }).catch(function () { $('loginMsg').textContent = '网络异常'; });
+    }).catch(function () {
+      setBusy(false);
+      $('loginMsg').textContent = '网络异常，请重试';
+    });
   }
 
   function doLogout() {
-    try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+    clearSession();
     showLogin();
   }
 
@@ -81,11 +102,14 @@
       if (r && r.ok && Array.isArray(r.tokens)) {
         renderStats(r.tokens);
         renderTable(r.tokens);
-      } else {
-        // 会话过期 / 未授权 → 回登录
+      } else if (r && r.error === 'unauthorized') {
+        // 会话失效 → 清除并回登录，避免残留失效会话反复触发过期提示
+        clearSession();
         showLogin('会话已过期，请重新登录');
+      } else {
+        showLogin('加载失败，请重试');
       }
-    }).catch(function () { showLogin('网络异常'); });
+    }).catch(function () { showLogin('网络异常，请重试'); });
   }
 
   function renderStats(tokens) {
